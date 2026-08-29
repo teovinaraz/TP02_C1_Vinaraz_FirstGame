@@ -1,5 +1,3 @@
-using NUnit.Framework.Internal;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,7 +27,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Movement playerTwo;
 
     [Header("Main Menu")]
-    [SerializeField] private GameObject mainMenuCanvas;
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject settingsPanel;
     [SerializeField] private GameObject creditsPanel;
@@ -38,15 +35,19 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonCredits;
     [SerializeField] private Button buttonExit;
 
-    [Header("Dig")]
-    [SerializeField] private Button buttonDig;
-    [SerializeField] private AudioSource digSound;
-    [SerializeField] private TMP_Text digText;
+    [Header("Pause Menu")]
+    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private Button buttonPauseContinue;
+    [SerializeField] private Button buttonPauseSettings;
+    [SerializeField] private Button buttonPauseCredits;
+    [SerializeField] private Button buttonPauseExit;
+
+    [Header("Gameplay")]
+    [SerializeField] private GraphicRaycaster digRaycaster;
 
     [Header("Player Speed")]
     [SerializeField] private Slider sliderPlayerOneSpeed;
     [SerializeField] private TMP_Text sliderValuePlayerOneSpeed;
-
     [SerializeField] private Slider sliderPlayerTwoSpeed;
     [SerializeField] private TMP_Text sliderValuePlayerTwoSpeed;
 
@@ -56,16 +57,21 @@ public class UIManager : MonoBehaviour
     [Header("Credits")]
     [SerializeField] private Button buttonCreditsBack;
 
-    private int counter = 0;
+    private bool isPlaying = false;
+    private bool settingsFromPause = false;
+    private bool creditsFromPause = false;
 
     private void Awake()
     {
         buttonPlay.onClick.AddListener(OnPlayClicked);
-        buttonDig.onClick.AddListener(OnDigClicked);
-        buttonPlay.onClick.AddListener(OnPlayClicked);
         buttonSettings.onClick.AddListener(OnSettingsClicked);
         buttonCredits.onClick.AddListener(OnCreditsClicked);
         buttonExit.onClick.AddListener(OnExitClicked);
+
+        buttonPauseContinue.onClick.AddListener(OnPauseContinueClicked);
+        buttonPauseSettings.onClick.AddListener(OnPauseSettingsClicked);
+        buttonPauseCredits.onClick.AddListener(OnPauseCreditsClicked);
+        buttonPauseExit.onClick.AddListener(OnExitClicked);
 
         buttonSettingsBack.onClick.AddListener(OnSettingsBackClicked);
         buttonCreditsBack.onClick.AddListener(OnCreditsBackClicked);
@@ -77,21 +83,121 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         Time.timeScale = 0f;
-        digText.text = counter.ToString();
+
+        digRaycaster.enabled = false;
+
+        pausePanel.SetActive(false);
+        settingsPanel.SetActive(false);
+        creditsPanel.SetActive(false);
     }
 
     private void Update()
     {
-        
+        if (!isPlaying)
+            return;
+
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+        {
+            if (Time.timeScale == 1f)
+            {
+                pausePanel.SetActive(true);
+                Time.timeScale = 0f;
+            }
+            else
+            {
+                pausePanel.SetActive(false);
+                Time.timeScale = 1f;
+            }
+        }
     }
 
     private void OnDestroy()
     {
         buttonPlay.onClick.RemoveListener(OnPlayClicked);
-        buttonDig.onClick.RemoveListener(OnDigClicked);
+        buttonSettings.onClick.RemoveListener(OnSettingsClicked);
+        buttonCredits.onClick.RemoveListener(OnCreditsClicked);
+        buttonExit.onClick.RemoveListener(OnExitClicked);
+
+        buttonPauseContinue.onClick.RemoveListener(OnPauseContinueClicked);
+        buttonPauseSettings.onClick.RemoveListener(OnPauseSettingsClicked);
+        buttonPauseCredits.onClick.RemoveListener(OnPauseCreditsClicked);
+        buttonPauseExit.onClick.RemoveListener(OnExitClicked);
+
+        buttonSettingsBack.onClick.RemoveListener(OnSettingsBackClicked);
+        buttonCreditsBack.onClick.RemoveListener(OnCreditsBackClicked);
 
         sliderPlayerOneSpeed.onValueChanged.RemoveListener(OnPlayerOneSpeed);
         sliderPlayerTwoSpeed.onValueChanged.RemoveListener(OnPlayerTwoSpeed);
+    }
+
+    private void OnPlayClicked()
+    {
+        isPlaying = true;
+
+        mainMenuPanel.SetActive(false);
+        digRaycaster.enabled = true;
+
+        Time.timeScale = 1f;
+    }
+
+    private void OnSettingsClicked()
+    {
+        mainMenuPanel.SetActive(false);
+        settingsPanel.SetActive(true);
+
+        settingsFromPause = false;
+    }
+
+    private void OnCreditsClicked()
+    {
+        mainMenuPanel.SetActive(false);
+        creditsPanel.SetActive(true);
+
+        creditsFromPause = false;
+    }
+
+    private void OnSettingsBackClicked()
+    {
+        settingsPanel.SetActive(false);
+
+        if (settingsFromPause)
+            pausePanel.SetActive(true);
+        else
+            mainMenuPanel.SetActive(true);
+    }
+
+    private void OnCreditsBackClicked()
+    {
+        creditsPanel.SetActive(false);
+
+        if (creditsFromPause)
+            pausePanel.SetActive(true);
+        else
+            mainMenuPanel.SetActive(true);
+    }
+
+    private void OnPauseContinueClicked()
+    {
+        pausePanel.SetActive(false);
+        digRaycaster.enabled = true;
+
+        Time.timeScale = 1f;
+    }
+
+    private void OnPauseSettingsClicked()
+    {
+        pausePanel.SetActive(false);
+        settingsPanel.SetActive(true);
+
+        settingsFromPause = true;
+    }
+
+    private void OnPauseCreditsClicked()
+    {
+        pausePanel.SetActive(false);
+        creditsPanel.SetActive(true);
+
+        creditsFromPause = true;
     }
 
     private void OnPlayerOneSpeed(float value)
@@ -106,43 +212,12 @@ public class UIManager : MonoBehaviour
         sliderValuePlayerTwoSpeed.text = value.ToString("F2");
     }
 
-    private void OnDigClicked()
-    {
-        counter++;
-        digText.text = counter.ToString();
-        digSound.Play();
-    }
-
-    private void OnPlayClicked()
-    {
-        mainMenuPanel.SetActive(false);
-        Time.timeScale = 1f;
-    }
-    private void OnSettingsClicked()
-    {
-        mainMenuPanel.SetActive(false);
-        settingsPanel.SetActive(true);
-    }
-
-    private void OnCreditsClicked()
-    {
-        mainMenuPanel.SetActive(false);
-        creditsPanel.SetActive(true);
-    }
-
-    private void OnSettingsBackClicked()
-    {
-        settingsPanel.SetActive(false);
-        mainMenuPanel.SetActive(true);
-    }
-
-    private void OnCreditsBackClicked()
-    {
-        creditsPanel.SetActive(false);
-        mainMenuPanel.SetActive(true);
-    }
     private void OnExitClicked()
     {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
         Application.Quit();
+#endif
     }
 }
