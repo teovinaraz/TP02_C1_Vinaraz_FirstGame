@@ -9,6 +9,11 @@ public class Movement : MonoBehaviour
     [SerializeField] private KeyCode moveDown = KeyCode.S;
     [SerializeField] private KeyCode moveLeft = KeyCode.A;
     [SerializeField] private float movSpeed = 2.0f;
+    public float MovSpeed
+    {
+        get { return movSpeed; }
+        set { movSpeed = value; }
+    }
 
     [Header("Rotation")]
     [SerializeField] private KeyCode rotateRight = KeyCode.E;
